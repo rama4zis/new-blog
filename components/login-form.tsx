@@ -8,71 +8,51 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { login } from "@/app/login/actions"
 
 export function LoginForm() {
-  const router = useRouter()
+  // const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    remember: false,
-  })
-  const [errors, setErrors] = useState({
-    email: "",
-    password: "",
-  })
+  // const [formData, setFormData] = useState({
+  //   email: "",
+  //   password: "",
+  //   remember: false,
+  // })
+  // const [errors, setErrors] = useState({
+  //   email: "",
+  //   password: "",
+  // })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    // Clear error when user types
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }))
-    }
-  }
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value } = e.target
+  //   setFormData((prev) => ({ ...prev, [name]: value }))
+  //   // Clear error when user types
+  //   if (errors[name as keyof typeof errors]) {
+  //     setErrors((prev) => ({ ...prev, [name]: "" }))
+  //   }
+  // }
 
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData((prev) => ({ ...prev, remember: checked }))
-  }
+  // const validateForm = () => {
+  //   let valid = true
+  //   const newErrors = { ...errors }
+  //   console.log(formData)
 
-  const validateForm = () => {
-    let valid = true
-    const newErrors = { ...errors }
+  //   if (!formData.email) {
+  //     newErrors.email = "Email harus diisi"
+  //     valid = false
+  //   }
 
-    if (!formData.email) {
-      newErrors.email = "Email harus diisi"
-      valid = false
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Format email tidak valid"
-      valid = false
-    }
+  //   if (!formData.password) {
+  //     newErrors.password = "Password harus diisi"
+  //     valid = false
+  //   }
 
-    if (!formData.password) {
-      newErrors.password = "Password harus diisi"
-      valid = false
-    }
-
-    setErrors(newErrors)
-    return valid
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!validateForm()) return
-
-    setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      // Redirect to home page after successful login
-      router.push("/")
-    }, 1500)
-  }
+  //   setErrors(newErrors)
+  //   return valid
+  // }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
+    <form className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -80,11 +60,11 @@ export function LoginForm() {
           name="email"
           type="email"
           placeholder="nama@email.com"
-          value={formData.email}
-          onChange={handleChange}
+          // value={formData.email}
+          // onChange={handleChange}
           required
         />
-        {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+        {/* {errors.email && <p className="text-sm text-red-500">{errors.email}</p>} */}
       </div>
 
       <div className="space-y-2">
@@ -99,14 +79,14 @@ export function LoginForm() {
           name="password"
           type="password"
           placeholder="••••••••"
-          value={formData.password}
-          onChange={handleChange}
+          // value={formData.password}
+          // onChange={handleChange}
           required
         />
-        {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
+        {/* {errors.password && <p className="text-sm text-red-500">{errors.password}</p>} */}
       </div>
 
-      <Button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white" disabled={isLoading}>
+      <Button formAction={login} type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white" disabled={isLoading}>
         {isLoading ? "Memproses..." : "Masuk"}
       </Button>
 
