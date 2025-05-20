@@ -1,12 +1,19 @@
-import AccountForm from './account-form'
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+import AccountPage from "./new-account-form";
 
 export default async function Account() {
   const supabase = await createClient()
 
   const {
-    data: { user },
+    data: { user }, 
   } = await supabase.auth.getUser()
 
-  return <AccountForm user={user} />
+  if (!user) {
+    redirect('/login')
+    return
+  }
+
+  return <AccountPage user={user} />
+
 }
