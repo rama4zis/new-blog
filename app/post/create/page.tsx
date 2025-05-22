@@ -29,6 +29,7 @@ export default function CreatePostForm() {
   const [categories, setCategories] = useState<Category[]>([])
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [categoryId, setCategoryId] = useState<string>("") // Ganti dari slug ke ID
 
   useEffect(() => {
     async function fetchCategories() {
@@ -45,38 +46,38 @@ export default function CreatePostForm() {
     e.preventDefault()
     setUploading(true)
 
-    let imageUrl = null
+    let imageUrl: string | null = null
 
     if (imageFile) {
-      const fileExt = imageFile.name.split(".").pop()
-      const fileName = `${Date.now()}-${Math.floor(Math.random() * 10000)}.png`
+      const formData = new FormData()
+      formData.append("image", imageFile)
 
-      const filePath = `post-images/${fileName}`
+      try {
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
 
-      const { error: uploadError } = await supabase.storage
-        .from("post-images")
-        .upload(filePath, imageFile)
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || "Upload gagal")
 
-      if (uploadError) {
-        alert("Gagal mengunggah gambar")
-        console.error(uploadError)
+        imageUrl = data.url
+      } catch (err) {
+        alert("Gagal upload gambar")
+        console.error(err)
         setUploading(false)
         return
       }
-
-      const { data } = supabase.storage
-        .from("post-images")
-        .getPublicUrl(filePath)
-
-      imageUrl = data.publicUrl
     }
 
     const { error } = await supabase.from("posts").insert([
       {
         title,
+        slug: title.toLowerCase().replace(/\s+/g, '-'), // Simple slug generator
         content,
-        category_slug: category,
+        category_id: categoryId,
         image_url: imageUrl,
+        published: true,
       },
     ])
 
@@ -89,10 +90,12 @@ export default function CreatePostForm() {
       alert("Postingan berhasil disimpan!")
       setTitle("")
       setContent("")
-      setCategory("")
+      setCategoryId("")
       setImageFile(null)
     }
   }
+
+
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-6 space-y-6 border rounded-xl shadow bg-white">
@@ -110,18 +113,19 @@ export default function CreatePostForm() {
 
       <div className="space-y-2">
         <Label htmlFor="category">Kategori</Label>
-        <Select value={category} onValueChange={(value) => setCategory(value)}>
+        <Select value={categoryId} onValueChange={(value) => setCategoryId(value)}>
           <SelectTrigger id="category">
             <SelectValue placeholder="Pilih kategori" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.slug}>
+              <SelectItem key={cat.id} value={cat.id}>
                 {cat.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
       </div>
 
       <div className="space-y-2">
@@ -144,6 +148,18 @@ export default function CreatePostForm() {
           onChange={(e) => setImageFile(e.target.files?.[0] || null)}
         />
       </div>
+
+      {imageFile && (
+        <div className="mt-4">
+          <p className="text-sm">Pratinjau gambar:</p>
+          <img
+            src={URL.createObjectURL(imageFile)}
+            alt="Preview"
+            className="max-h-48 rounded border mt-2"
+          />
+        </div>
+      )}
+
 
       <Button type="submit" disabled={uploading} className="bg-blue-600 text-white hover:bg-blue-700">
         {uploading ? "Menyimpan..." : "Simpan Postingan"}
