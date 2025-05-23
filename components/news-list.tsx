@@ -1,93 +1,55 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Clock } from "lucide-react"
+import { createClient } from "@/utils/supabase/client"
 
-const newsListItems = [
-  {
-    id: 10,
-    title: "Menteri PUPR Tinjau Proyek Tol Trans Sumatera, Target Selesai Akhir 2025",
-    category: "detikNews",
-    time: "20 menit lalu",
-    image: "/sby.jpg",
-  },
-  {
-    id: 11,
-    title: "Harga Emas Antam Hari Ini Naik Rp 5.000 per Gram",
-    category: "detikFinance",
-    time: "32 menit lalu",
-    image: "/sby.jpg",
-  },
-  {
-    id: 12,
-    title: "Polisi Tangkap Pelaku Penipuan Online yang Rugikan Ratusan Korban",
-    category: "detikNews",
-    time: "45 menit lalu",
-    image: "/sby.jpg",
-  },
-  {
-    id: 13,
-    title: "Menkominfo: Internet 5G Akan Digelar di 20 Kota Besar Tahun Ini",
-    category: "detikInet",
-    time: "1 jam lalu",
-    image: "/sby.jpg",
-  },
-  {
-    id: 14,
-    title: "Resep Ayam Bakar Madu yang Gurih dan Manis, Cocok untuk Makan Siang",
-    category: "detikFood",
-    time: "1 jam lalu",
-    image: "/sby.jpg",
-  },
-  {
-    id: 15,
-    title: "Kemenkes: Kasus DBD Meningkat 15% Dibanding Tahun Lalu",
-    category: "detikHealth",
-    time: "1 jam lalu",
-    image: "/sby.jpg",
-  },
-  {
-    id: 16,
-    title: "Daftar Harga Mobil Listrik Terbaru di Indonesia, Mulai Rp 400 Jutaan",
-    category: "detikOto",
-    time: "2 jam lalu",
-    image: "/sby.jpg",
-  },
-  {
-    id: 17,
-    title: "Timnas U-23 Indonesia Siap Hadapi Thailand di Final SEA Games",
-    category: "detikSport",
-    time: "2 jam lalu",
-    image: "/sby.jpg",
-  },
-  {
-    id: 18,
-    title: "5 Destinasi Wisata Baru di Bali yang Belum Banyak Dikunjungi",
-    category: "detikTravel",
-    time: "3 jam lalu",
-    image: "/sby.jpg",
-  },
-  {
-    id: 19,
-    title: "Tren Fashion 2025: Busana Ramah Lingkungan Jadi Pilihan Utama",
-    category: "Wolipop",
-    time: "3 jam lalu",
-    image: "/sby.jpg",
-  },
-]
+type Post = {
+  id: string
+  title: string
+  image_url: string | null
+  created_at: string
+  categories: {
+    name: string
+  } | null
+}
 
 export default function NewsList() {
+  const [posts, setPosts] = useState<Post[]>([])
+  const supabase = createClient()
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("id, title, image_url, created_at, categories(name)")
+        .order("created_at", { ascending: false })
+        .limit(10)
+
+      if (error) {
+        console.error("Gagal mengambil data:", error)
+      } else {
+        setPosts(data)
+      }
+    }
+
+    fetchPosts()
+  }, [])
+
   return (
     <div className="bg-white rounded-md border border-gray-200 overflow-hidden">
       <div className="bg-blue-700 text-white py-2 px-4">
         <h2 className="font-bold">Berita Terbaru</h2>
       </div>
       <div className="divide-y divide-gray-200">
-        {newsListItems.map((item) => (
+        {posts.map((item) => (
           <Link key={item.id} href={`/news/${item.id}`}>
             <div className="p-3 hover:bg-gray-50 flex gap-3 group">
               <div className="flex-shrink-0">
                 <Image
-                  src={item.image || "/placeholder.svg"}
+                  src={item.image_url || "/placeholder.svg"}
                   alt={item.title}
                   width={90}
                   height={60}
@@ -97,11 +59,11 @@ export default function NewsList() {
               <div className="flex-1">
                 <h3 className="font-medium line-clamp-2 group-hover:text-blue-700">{item.title}</h3>
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                  <span className="text-blue-700">{item.category}</span>
+                  <span className="text-blue-700">{item.categories?.name || "Umum"}</span>
                   <span>•</span>
                   <div className="flex items-center">
                     <Clock className="h-3 w-3 mr-1" />
-                    <span>{item.time}</span>
+                    <span>{formatTimeAgo(item.created_at)}</span>
                   </div>
                 </div>
               </div>
@@ -111,4 +73,18 @@ export default function NewsList() {
       </div>
     </div>
   )
+}
+
+// Simple relative time formatter
+function formatTimeAgo(dateString: string) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diff = Math.floor((now.getTime() - date.getTime()) / 60000) // in minutes
+
+  if (diff < 1) return "Baru saja"
+  if (diff < 60) return `${diff} menit lalu`
+  const hours = Math.floor(diff / 60)
+  if (hours < 24) return `${hours} jam lalu`
+  const days = Math.floor(hours / 24)
+  return `${days} hari lalu`
 }
