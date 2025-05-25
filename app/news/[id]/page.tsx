@@ -6,6 +6,7 @@ import PopularNews from "@/components/popular-news"
 import RecentComments from "@/components/recent-comments"
 import { notFound } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
+import Comments from "@/components/comments"
 
 export default async function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = createClient()
@@ -82,6 +83,9 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
               className="prose max-w-none"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
+
+            <Comments postId={post.id} />
+
           </article>
 
           <div className="lg:w-80 space-y-6">

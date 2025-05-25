@@ -1,78 +1,140 @@
-// components/comments.tsx
 "use client"
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/utils/supabase/client"
-import { MessageCircle } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 
-interface Comment {
+type Comment = {
   id: string
+  post_id: string
+  user_id: string
   content: string
   created_at: string
-  users: {
-    email: string
-  } | null
 }
 
-export default function Comments({ postId }: { postId: string }) {
-  const [comments, setComments] = useState<Comment[]>([])
+type Profile = {
+  id: string
+  username: string | null
+  avatar_url: string | null
+}
+
+type CommentWithProfile = Comment & {
+  profile?: Profile
+}
+
+export default function CommentsSection({ postId }: { postId: string }) {
+  const supabase = createClient()
+  const [comments, setComments] = useState<CommentWithProfile[]>([])
   const [loading, setLoading] = useState(true)
+  const [newComment, setNewComment] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+
+  const fetchComments = async () => {
+    const { data: rawComments, error: commentError } = await supabase
+      .from("comments")
+      .select("*")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: false })
+
+    if (commentError || !rawComments) return
+
+    const userIds = [...new Set(rawComments.map((c) => c.user_id))]
+    const { data: profiles, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, username, avatar_url")
+      .in("id", userIds)
+
+    if (profileError || !profiles) return
+
+    const profileMap = Object.fromEntries(profiles.map(p => [p.id, p]))
+
+    const mergedComments = rawComments.map((c) => ({
+      ...c,
+      profile: profileMap[c.user_id],
+    }))
+
+    setComments(mergedComments)
+    setLoading(false)
+  }
 
   useEffect(() => {
-    const fetchComments = async () => {
-      const supabase = createClient()
-
-      const { data, error } = await supabase
-        .from("comments")
-        .select(`
-          id,
-          content,
-          created_at,
-          users:auth.users ( email )
-        `)
-        .eq("post_id", postId)
-        .order("created_at", { ascending: false })
-
-      if (!error && data) {
-        setComments(data)
-      }
-
-      setLoading(false)
-    }
-
     fetchComments()
   }, [postId])
 
-  return (
-    <section>
-      <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
-        <MessageCircle className="h-5 w-5" />
-        Komentar ({comments.length})
-      </h2>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newComment.trim()) return
 
-      {loading ? (
-        <p>Memuat komentar...</p>
-      ) : comments.length === 0 ? (
-        <p>Belum ada komentar. Jadilah yang pertama!</p>
-      ) : (
-        <ul className="space-y-4">
-          {comments.map((comment) => (
-            <li key={comment.id} className="border rounded-lg p-4">
-              <p className="text-gray-700 mb-2">{comment.content}</p>
-              <div className="text-sm text-gray-500">
-                {comment.users?.email ?? "Anonim"} •{" "}
-                {new Date(comment.created_at).toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    setSubmitting(true)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      alert("You must be logged in to comment.")
+      setSubmitting(false)
+      return
+    }
+
+    const { error } = await supabase.from("comments").insert({
+      post_id: postId,
+      user_id: user.id,
+      content: newComment.trim(),
+    })
+
+    if (!error) {
+      setNewComment("")
+      await fetchComments() // Refresh
+    } else {
+      console.error(error)
+      alert("Failed to post comment.")
+    }
+
+    setSubmitting(false)
+  }
+
+  if (loading) return <p>Loading comments...</p>
+
+  return (
+    <div className="mt-8 space-y-6">
+      <h2 className="text-lg font-semibold">Komentar</h2>
+
+      {/* Add Comment Form */}
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <Textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Tulis komentar..."
+          className="resize-none"
+        />
+        <Button type="submit" disabled={submitting}>
+          {submitting ? "Mengirim..." : "Kirim"}
+        </Button>
+      </form>
+
+      {/* Comment List */}
+      {comments.map((c) => {
+        const username = c.profile?.username ?? "Anonim"
+        const avatarUrl = c.profile?.avatar_url ?? "/default-avatar.png"
+
+        return (
+          <div key={c.id} className="border rounded p-4 flex gap-3 items-start">
+            <Avatar>
+              <AvatarImage src={avatarUrl} />
+              <AvatarFallback className="text-2xl">
+                {username.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">{username}</p>
+              <p className="text-sm text-gray-600">{new Date(c.created_at).toLocaleString()}</p>
+              <p className="mt-2">{c.content}</p>
+            </div>
+          </div>
+        )
+      })}
+    </div>
   )
 }
