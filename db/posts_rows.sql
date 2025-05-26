@@ -1,0 +1,1 @@
+INSERT INTO "public"."posts" ("id", "user_id", "category_id", "title", "slug", "content", "image_url", "published", "created_at", "updated_at") VALUES ('7e9516c6-9ad3-4bd0-8783-14b8f059ec1e', null, 'd2c4e599-9e33-408d-8dcd-b6d304980088', 'Judul', 'judul', 'Konten 1', '/uploads/1747910752716-6964.webp', 'true', '2025-05-22 10:45:53.023876+00', '2025-05-22 10:45:53.023876+00');
