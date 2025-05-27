@@ -18,7 +18,19 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
     .eq("id", (await params).id)
     .single()
 
-  if (error || !post) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, avatar_url")
+    .eq("id", post.user_id)
+    .single()
+
+    const {data: category} = await supabase
+    .from("categories")
+    .select("name")
+    .eq("id", post.category_id)
+    .single()
+
+  if (error || !post || !profile || !category) {
     notFound()
   }
 
@@ -53,13 +65,13 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
         <div className="flex flex-col lg:flex-row gap-6 justify-between">
           <article className="flex-1 max-w-3xl">
             <div className="mb-4">
-              <span className="text-blue-700 font-medium">{post.categories?.name ?? "Tanpa Kategori"}</span>
+              <span className="text-blue-700 font-medium">{category.name ?? "Tanpa Kategori"}</span>
             </div>
 
             <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
 
             <div className="flex items-center text-gray-500 mb-6 text-sm">
-              <span>{post.auth_users?.email ?? "Anonim"}</span>
+              <span>{profile?.username ?? "Anonim"}</span>
               <span className="mx-2">-</span>
               <div className="flex items-center">
                 <Clock className="h-4 w-4 mr-1" />
@@ -68,6 +80,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
                 })}</span>
               </div>
             </div>
+
 
             <div className="mb-6">
               <Image

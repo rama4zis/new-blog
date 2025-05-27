@@ -137,11 +137,7 @@ export default function AccountPage({ user }: { user: User | null }) {
                   onChange={(e) => setFullname(e.target.value)}
                 />
               </div>
-
-
-              <span className="text-lg font-semibold">Hello chat</span>
-              <p className="text-sm text-muted-foreground">dominance.</p>
-
+              
               <div className="flex gap-4">
                 <form action="/auth/signout" method="post">
 

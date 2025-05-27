@@ -70,16 +70,29 @@ export default function CreatePostForm() {
       }
     }
 
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+    
+    if (userError || !user) {
+      alert("Tidak dapat mengambil data pengguna.")
+      setUploading(false)
+      return
+    }
+    
     const { error } = await supabase.from("posts").insert([
       {
         title,
-        slug: title.toLowerCase().replace(/\s+/g, '-'), // Simple slug generator
+        slug: title.toLowerCase().replace(/\s+/g, '-'),
         content,
         category_id: categoryId,
         image_url: imageUrl,
         published: true,
+        user_id: user.id,
       },
     ])
+    
 
     setUploading(false)
 
