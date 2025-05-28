@@ -9,6 +9,7 @@ import { createClient } from "@/utils/supabase/client"
 type Post = {
   id: string
   title: string
+  slug: string
   image_url: string | null
   created_at: string
   categories: {
@@ -24,7 +25,7 @@ export default function NewsList() {
     const fetchPosts = async () => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, title, image_url, created_at, categories(name)")
+        .select("*, categories(name)")
         .order("created_at", { ascending: false })
         .limit(10)
 
@@ -45,7 +46,7 @@ export default function NewsList() {
       </div>
       <div className="divide-y divide-gray-200">
         {posts.map((item) => (
-          <Link key={item.id} href={`/news/${item.id}`}>
+          <Link key={item.id} href={`/news/${item.slug}`}>
             <div className="p-3 hover:bg-gray-50 flex gap-3 group">
               <div className="flex-shrink-0">
                 <Image

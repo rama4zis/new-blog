@@ -4,18 +4,25 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Clock, Share2 } from "lucide-react"
 import PopularNews from "@/components/popular-news"
 import RecentComments from "@/components/recent-comments"
-import { notFound } from "next/navigation"
-import { createClient } from "@/utils/supabase/client"
+import { notFound, redirect } from "next/navigation"
+import { createClient } from "@/utils/supabase/server"
 import Comments from "@/components/comments"
 
-export default async function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = createClient()
+export default async function NewsDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const supabase = await createClient()
 
-  // Ambil post dengan join ke kategori dan user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   const { data: post, error } = await supabase
     .from("posts")
-    .select(`*`)
-    .eq("id", (await params).id)
+    .select("*")
+    .eq("slug", (await params).slug)
     .single()
 
   const { data: profile } = await supabase
@@ -24,7 +31,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
     .eq("id", post.user_id)
     .single()
 
-    const {data: category} = await supabase
+  const { data: category } = await supabase
     .from("categories")
     .select("name")
     .eq("id", post.category_id)
@@ -32,6 +39,15 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
 
   if (error || !post || !profile || !category) {
     notFound()
+  }
+
+  const isOwner = user?.id === post.user_id
+
+  async function handleDelete() {
+    "use server"
+    const supabase = await createClient()
+    await supabase.from("posts").delete().eq("id", post.id)
+    redirect("/")
   }
 
   return (
@@ -64,8 +80,21 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6 justify-between">
           <article className="flex-1 max-w-3xl">
-            <div className="mb-4">
-              <span className="text-blue-700 font-medium">{category.name ?? "Tanpa Kategori"}</span>
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-blue-700 font-medium">
+                {category?.name ?? "Tanpa Kategori"}
+              </span>
+
+              {isOwner && (
+                <div className="flex gap-2">
+                  <Link href={`/post/edit/${post.slug}`}>
+                    <Button size="sm" variant="outline">Edit</Button>
+                  </Link>
+                  <form action={handleDelete}>
+                    <Button size="sm" variant="destructive" type="submit">Hapus</Button>
+                  </form>
+                </div>
+              )}
             </div>
 
             <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
@@ -75,12 +104,15 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
               <span className="mx-2">-</span>
               <div className="flex items-center">
                 <Clock className="h-4 w-4 mr-1" />
-                <span>{new Date(post.created_at).toLocaleDateString("id-ID", {
-                  day: "numeric", month: "long", year: "numeric"
-                })}</span>
+                <span>
+                  {new Date(post.created_at).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </span>
               </div>
             </div>
-
 
             <div className="mb-6">
               <Image
@@ -98,7 +130,6 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
             />
 
             <Comments postId={post.id} />
-
           </article>
 
           <div className="lg:w-80 space-y-6">

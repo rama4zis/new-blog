@@ -13,16 +13,6 @@ type Comment = {
   user_id: string
 }
 
-type Post = {
-  id: string
-  title: string
-}
-
-type Profile = {
-  id: string
-  username: string
-}
-
 function timeAgo(dateString: string) {
   const now = new Date()
   const past = new Date(dateString)
@@ -37,8 +27,9 @@ function timeAgo(dateString: string) {
 
 export default function RecentComments() {
   const [comments, setComments] = useState<
-    (Comment & { postTitle?: string; username?: string })[]
-  >([])
+  (Comment & { postTitle?: string; username?: string; postSlug?: string })[]
+>([])
+
 
   useEffect(() => {
     const supabase = createClient()
@@ -56,7 +47,7 @@ export default function RecentComments() {
       const userIds = [...new Set(commentData.map((c) => c.user_id))]
 
       const [{ data: posts }, { data: profiles }] = await Promise.all([
-        supabase.from("posts").select("id, title").in("id", postIds),
+        supabase.from("posts").select("id, title, slug").in("id", postIds),
         supabase.from("profiles").select("id, username").in("id", userIds),
       ])
 
@@ -66,6 +57,7 @@ export default function RecentComments() {
         return {
           ...c,
           postTitle: post?.title ?? "Judul tidak ditemukan",
+          postSlug: post?.slug ?? null,
           username: user?.username ?? "Anonim",
         }
       })
@@ -97,11 +89,12 @@ export default function RecentComments() {
                 </div>
                 <p className="text-sm mt-1 line-clamp-2">{item.content}</p>
                 <Link
-                  href={`/news/${item.post_id}`}
+                  href={item.postSlug ? `/news/${item.postSlug}` : "#"}
                   className="text-xs text-gray-500 mt-1 block hover:underline"
                 >
                   di: {item.postTitle}
                 </Link>
+
               </div>
             </div>
           </div>

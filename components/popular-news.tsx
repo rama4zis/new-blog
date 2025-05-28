@@ -8,6 +8,7 @@ import { createClient } from "@/utils/supabase/client"
 type Post = {
   id: string
   title: string
+  slug: string
   image_url?: string
 }
 
@@ -20,14 +21,13 @@ export default function PopularNews() {
     const fetchRandomPosts = async () => {
       const { data, error } = await supabase
         .from("posts")
-        .select("*")
+        .select("id, title, slug, image_url")
 
       if (!error && data) {
         // Acak secara client-side
         const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, 5)
         setPosts(shuffled)
       }
-
     }
 
     fetchRandomPosts()
@@ -40,7 +40,7 @@ export default function PopularNews() {
       </div>
       <div className="divide-y divide-gray-200">
         {posts.map((item, index) => (
-          <Link key={item.id} href={`/news/${item.id}`}>
+          <Link key={item.id} href={`/news/${item.slug}`}>
             <div className="p-3 hover:bg-gray-50 flex gap-3 group">
               <div className="relative flex-shrink-0">
                 <Image
@@ -58,9 +58,6 @@ export default function PopularNews() {
                 <h3 className="text-sm font-medium line-clamp-2 group-hover:text-blue-700">
                   {item.title}
                 </h3>
-                {/* <div className="text-xs text-gray-500 mt-1">
-                  {item.views ? `${item.views.toLocaleString()} dibaca` : "0 dibaca"}
-                </div> */}
               </div>
             </div>
           </Link>
