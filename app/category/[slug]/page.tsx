@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Menu, Search, Clock } from "lucide-react"
 import Link from "next/link"
+import Navigation from "@/components/nav"
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const supabase = createClient()
@@ -27,53 +28,8 @@ export default async function CategoryPage({ params }: { params: { slug: string 
 
   return (
     <main className="min-h-screen">
-      {/* Header */}
-      <header>
-        <div className="container mx-auto px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Menu</span>
-            </Button>
-            <span className="hidden md:inline font-medium">MENU</span>
-          </div>
-          <div className="relative w-full max-w-md mx-4">
-            <Input
-              type="search"
-              placeholder="Cari berita anda"
-              className="pl-3 pr-10 rounded-full border-gray-300"
-            />
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          </div>
-          <div className="flex items-center gap-2">
-            <AuthButtons />
-          </div>
-        </div>
-      </header>
-
-      {/* Logo */}
-      <div className="container mx-auto px-4 py-6 flex justify-center">
-        <Link href="/">
-          <div className="flex items-end">
-            <span className="text-5xl font-bold text-blue-800">NewBlog</span>
-            <span className="text-5xl font-bold text-red-500">com</span>
-          </div>
-        </Link>
-      </div>
-
-      {/* Navbar */}
-      <nav className="bg-blue-700 text-white">
-        <div className="container mx-auto px-4 overflow-x-auto">
-          <div className="flex space-x-6 py-3 whitespace-nowrap">
-            {/* Hardcoded kategori list, bisa juga dinamis */}
-            {["detikNews", "detikFinance", "detikHot", "detikInet", "detikSport", "detikOto", "detikTravel", "detikFood", "detikHealth", "Wolipop", "20detik", "Daerah"].map((name) => (
-              <Link key={name} href="#" className="font-medium hover:text-blue-200">
-                {name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </nav>
+      
+      <Navigation />
 
       {/* Konten */}
       <div className="container mx-auto px-4 py-6">

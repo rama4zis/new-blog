@@ -81,18 +81,6 @@ export default function AccountPage({ user }: { user: User | null }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/">
-            <div className="flex items-end">
-              <span className="text-2xl font-bold text-blue-800">detik</span>
-              <span className="text-2xl font-bold text-red-500">com</span>
-            </div>
-          </Link>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <section className="rounded-[0.5rem] border bg-background shadow">
           <div className="flex justify-center my-4 gap-2">
