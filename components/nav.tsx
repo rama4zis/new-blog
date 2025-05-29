@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Menu, Search, User } from "lucide-react";
 import { AuthButtons } from "@/components/auth-button";
+import { useRouter } from "next/navigation"
 
 type Category = {
     id: string
@@ -17,6 +18,8 @@ type Category = {
 export default function Navigation() {
     const [categories, setCategories] = useState<Category[]>([])
     const [user, setUser] = useState<any>(null)
+    const router = useRouter()
+    const [searchQuery, setSearchQuery] = useState("")
 
     const supabase = createClient()
 
@@ -36,6 +39,13 @@ export default function Navigation() {
         fetchUserAndCategories()
     }, [supabase])
 
+    function handleSearchSubmit(e: React.FormEvent) {
+        e.preventDefault()
+        if (searchQuery.trim()) {
+            router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+        }
+    }
+
     return (
         <>
             {/* Header */}
@@ -48,10 +58,19 @@ export default function Navigation() {
                         </Button>
                         <span className="hidden md:inline font-medium">MENU</span>
                     </div>
-                    <div className="relative w-full max-w-md mx-4">
-                        <Input type="search" placeholder="Cari berita anda" className="pl-3 pr-10 rounded-full border-gray-300" />
-                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    </div>
+                    <form onSubmit={handleSearchSubmit} className="relative w-full max-w-md mx-4">
+                        <Input
+                            type="search"
+                            placeholder="Cari berita anda"
+                            className="pl-3 pr-10 rounded-full border-gray-300"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <button type="submit">
+                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        </button>
+                    </form>
+
                     <div className="flex items-center gap-3">
                         {user ? (
                             <>

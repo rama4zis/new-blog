@@ -7,6 +7,7 @@ import RecentComments from "@/components/recent-comments"
 import { notFound, redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
 import Comments from "@/components/comments"
+import Navigation from "@/components/nav"
 
 export default async function NewsDetailPage({
   params,
@@ -52,29 +53,7 @@ export default async function NewsDetailPage({
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b sticky top-0 bg-white z-10">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/">
-              <ArrowLeft className="h-5 w-5" />
-              <span className="sr-only">Kembali</span>
-            </Link>
-          </Button>
-
-          <Link href="/">
-            <div className="flex items-end">
-              <span className="text-2xl font-bold text-blue-800">NewBlog</span>
-              <span className="text-2xl font-bold text-red-500">com</span>
-            </div>
-          </Link>
-
-          <Button variant="ghost" size="icon">
-            <Share2 className="h-5 w-5" />
-            <span className="sr-only">Bagikan</span>
-          </Button>
-        </div>
-      </header>
+      <Navigation />
 
       {/* Content */}
       <div className="container mx-auto px-4 py-6">
