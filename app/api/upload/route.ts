@@ -21,8 +21,12 @@ export async function POST(req: NextRequest) {
   const filePath = path.join(uploadDir, fileName)
 
   await fs.writeFile(filePath, buffer)
+  
+  // Ensure file is written and accessible
+  await new Promise(resolve => setTimeout(resolve, 100))
 
-  const imageUrl = `/uploads/${fileName}`
+  // Use API route instead of static file path for production compatibility
+  const imageUrl = `/api/images/${fileName}`
 
   return NextResponse.json({ url: imageUrl }, { status: 200 })
 }

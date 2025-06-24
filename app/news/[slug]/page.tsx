@@ -39,6 +39,7 @@ export default async function NewsDetailPage({
     .single()
 
   if (error || !post || !profile || !category) {
+    console.log("Error fetching post data:", error)
     notFound()
   }
 
